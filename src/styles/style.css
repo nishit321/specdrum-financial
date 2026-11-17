@@ -1465,6 +1465,52 @@ a.sbf-topbar-item:hover {
   border-radius: var(--sbf-radius-lg) !important;
 }
 
+/* Reviews widget section (before footer, all pages) */
+.sbf-reviews {
+  background: var(--sbf-white);
+  padding: 40px 0;
+}
+
+@media (max-width: 767.98px) {
+  .sbf-reviews { padding: 28px 0; }
+}
+
+.sbf-reviews .sbf-testi-widget-card,
+.sbf-reviews .sbf-testi-widget-card:hover {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  transform: none;
+}
+
+.sbf-reviews .sbf-testi-widget-card [data-storyproof-widget] {
+  min-height: 200px;
+}
+
+/* Apply Now page: reviews section gradient */
+.sbf-reviews.sbf-reviews--apply {
+  background: linear-gradient(180deg, var(--sbf-bg-soft) 0%, var(--sbf-white) 100%);
+}
+
+/* Review Grid widget (testimonials page) */
+.sbf-review-grid {
+  background: var(--sbf-white);
+}
+
+.sbf-review-grid-widget [data-storyproof-widget] {
+  width: 100%;
+  min-height: 400px;
+  display: block;
+}
+
+.sbf-review-grid-widget iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+  border: 0 !important;
+}
+
 /* Apply Now page dedicated testimonials presentation */
 .sbf-testimonials--apply {
   background: var(--sbf-white);

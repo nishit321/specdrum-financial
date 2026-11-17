@@ -55,7 +55,14 @@ export function watchErrors(page: Page) {
     if (/storyproof/i.test(text) || /Failed to load resource/.test(text)) return;
     errors.push(text);
   });
-  page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
+  page.on('pageerror', (err) => {
+    // Errors thrown by StoryProof's own code (e.g. its "Failed to load chunk" when their app is
+    // down) are thrown at a frame on app.storyproof.io. Only the top frame counts: an error of
+    // this app called from their script still has our code on top and is reported.
+    const thrownAt = (err.stack ?? '').split('\n').find((line) => /^\s*at /.test(line)) ?? '';
+    if (/https:\/\/app\.storyproof\.io\//.test(thrownAt)) return;
+    errors.push(`pageerror: ${err.message}`);
+  });
   page.on('response', (res) => {
     const url = new URL(res.url());
     if (['127.0.0.1', 'localhost'].includes(url.hostname) && res.status() >= 400 && !url.pathname.startsWith('/api/')) {

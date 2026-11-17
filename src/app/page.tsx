@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
+import { ReviewsSection } from '@/components/ReviewSections';
 import { EligibilityForm } from '@/components/forms/EligibilityForm';
 import { HomeQuoteForm } from '@/components/forms/HomeQuoteForm';
 import { StoryproofWidget } from '@/components/StoryproofWidget';
@@ -1339,6 +1340,8 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection />
       </main>
     </>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
+import { QuoteSpotlightSection, ReviewsSection } from '@/components/ReviewSections';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -294,6 +295,8 @@ export default function TheProcessPage() {
             </div>
           </div>
         </section>
+        {/* ============ QUOTE SPOTLIGHT ============ */}
+        <QuoteSpotlightSection />
         {/* ============ STEP-BY-STEP TIMELINE ============ */}
         <section className="sbf-section sbf-pr">
           <div className="container">
@@ -762,6 +765,8 @@ export default function TheProcessPage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection />
       </main>
     </>
   );
