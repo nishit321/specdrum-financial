@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
+import { ReviewsSection } from '@/components/ReviewSections';
+import { StoryproofWidget } from '@/components/StoryproofWidget';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -205,244 +207,37 @@ export default function TestimonialsPage() {
             </div>
           </div>
         </section>
-        {/* ============ FEATURED TESTIMONIAL ============ */}
-        <section className="sbf-section sbf-tm-featured">
+        {/* ============ TESTIMONIALS ============ */}
+        <section className="sbf-section sbf-testimonials" id="testimonials">
           <div className="container">
-            <div className="row align-items-center g-5">
-              <div className="col-lg-5" data-sbf-reveal="">
-                <div className="sbf-tm-featured-photo">
-                  <Image src="/img/testi-handshake.jpg" alt="Business owner shaking hands with a Spectrum Financial funding specialist after securing a loan" width="460" height="520" loading="lazy" />
-                  {" "}
-                  <span className="sbf-tm-featured-badge">
-                    {" "}
-                    <strong>35 years</strong>
-                    {" "}
-                    <small>in business</small>
-                    {" "}
-                  </span>
-                </div>
+            <div className="row g-5 align-items-center">
+              <div className="col-lg-4" data-sbf-reveal="">
+                <span className="sbf-eyebrow">Client stories</span>
+                <h2 className="sbf-title">20 years of satisfied clients</h2>
+                <p className="sbf-text mb-0">
+                  Business owners across the nation trust Spectrum Financial to deliver exactly what we
+                  promise.
+                </p>
               </div>
-              <div className="col-lg-7" data-sbf-reveal="" data-sbf-delay="100">
-                <span className="sbf-eyebrow">Featured Story</span>
-                <h2 className="visually-hidden">Featured client testimonial</h2>
-                <figure className="sbf-tm-featured-quote">
-                  <svg className="sbf-tm-featured-mark" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote>
-                    I have never in my 35 years of being a business owner had such an easy experience in
-                    obtaining a loan. My overall experience with Spectrum Financial has been outstanding.
-                  </blockquote>
-                  <figcaption>
-                    <Image className="sbf-avatar-photo" src="/img/testi-greg.jpg" alt="Greg P." width="58" height="58" loading="lazy" />
-                    <div>
-                      <strong>Greg P.</strong>
-                      {" "}
-                      <span>Next Generation Interiors of Baker&apos;s</span>
-                    </div>
-                  </figcaption>
-                </figure>
+              <div className="col-lg-8" data-sbf-reveal="" data-sbf-delay="100">
+                <div className="sbf-testi-widget-card"><StoryproofWidget widgetId="6af49fb191f9b7a0112848fe" /></div>
               </div>
             </div>
           </div>
         </section>
-        {/* ============ ALL TESTIMONIALS ============ */}
-        <section className="sbf-section sbf-tm-grid-section">
+        {/* ============ REVIEW GRID ============ */}
+        <section className="sbf-section sbf-review-grid" id="review-grid">
           <div className="container">
             <div className="sbf-section-head text-center" data-sbf-reveal="">
               <span className="sbf-eyebrow">In Their Own Words</span>
               <h2 className="sbf-title">Stories from the businesses we&apos;ve funded</h2>
               <p className="sbf-text sbf-text-narrow mx-auto">
-                From distributors and contractors to medical practices, here&apos;s how Spectrum Financial
-                helped each business get the funding it needed.
+                From distributors and contractors to medical practices, here&apos;s what business owners say
+                about working with Spectrum Financial.
               </p>
             </div>
-            <div className="row g-4">
-              {/* Rudy S. */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="">
-                <figure className="sbf-testi-card sbf-tm-card">
-                  <svg className="sbf-testi-quote" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  {" "}
-                  <span className="sbf-tm-tag">
-                    <svg className="sbf-icon"><use href="#sbf-i-cash" /></svg>
-                    {" "}
-                    Working Capital
-                  </span>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote className="sbf-testi-text">
-                    We would like to take the time to thank you for putting together the working capital loan
-                    for our business. You delivered exactly what you said you would and that goes a long way
-                    for us. Our experience with you and Spectrum Financial was excellent. Thank you for coming
-                    through!
-                  </blockquote>
-                  <figcaption className="sbf-testi-author">
-                    <Image className="sbf-avatar-photo" src="/img/testi-rudy.jpg" alt="Rudy S." width="58" height="58" loading="lazy" />
-                    <div>
-                      <strong>Rudy S.</strong>
-                      {" "}
-                      <small>New York Carpet Distributors, Inc.</small>
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-              {/* Dr. David S. */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="" data-sbf-delay="100">
-                <figure className="sbf-testi-card sbf-tm-card">
-                  <svg className="sbf-testi-quote" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  {" "}
-                  <span className="sbf-tm-tag">
-                    <svg className="sbf-icon"><use href="#sbf-i-medical" /></svg>
-                    {" "}
-                    Practice Start-Up
-                  </span>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote className="sbf-testi-text">
-                    It was great to have your assistance on starting up our new practice back in 2002. We have
-                    been successful and my private practice dream came true with your help!
-                  </blockquote>
-                  <figcaption className="sbf-testi-author">
-                    <Image className="sbf-avatar-photo" src="/img/testi-david.jpg" alt="Dr. David S., O.D." width="58" height="58" loading="lazy" />
-                    <div>
-                      <strong>Dr. David S., O.D.</strong>
-                      {" "}
-                      <small>The Eye Center</small>
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-              {/* Greg P. */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="" data-sbf-delay="200">
-                <figure className="sbf-testi-card sbf-tm-card">
-                  <svg className="sbf-testi-quote" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  {" "}
-                  <span className="sbf-tm-tag">
-                    <svg className="sbf-icon"><use href="#sbf-i-doc" /></svg>
-                    {" "}
-                    Business Loan
-                  </span>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote className="sbf-testi-text">
-                    I have never in my 35 years of being a business owner had such an easy experience in
-                    obtaining a loan. My overall experience with Spectrum Financial has been outstanding. I
-                    look forward to doing business with you again soon. Thanks again!!
-                  </blockquote>
-                  <figcaption className="sbf-testi-author">
-                    <Image className="sbf-avatar-photo" src="/img/testi-greg.jpg" alt="Greg P." width="58" height="58" loading="lazy" />
-                    <div>
-                      <strong>Greg P.</strong>
-                      {" "}
-                      <small>Next Generation Interiors of Baker&apos;s</small>
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-              {/* Butch H. */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="">
-                <figure className="sbf-testi-card sbf-tm-card">
-                  <svg className="sbf-testi-quote" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  {" "}
-                  <span className="sbf-tm-tag">
-                    <svg className="sbf-icon"><use href="#sbf-i-gear" /></svg>
-                    {" "}
-                    Equipment Financing
-                  </span>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote className="sbf-testi-text">
-                    We wish to thank the team at Spectrum for working diligently to secure our equipment
-                    financing. We were very impressed with the flexibility and quick response. It was
-                    refreshing to deal with a team that was motivated to help secure financing in a short time
-                    frame.
-                  </blockquote>
-                  <figcaption className="sbf-testi-author">
-                    <Image className="sbf-avatar-photo" src="/img/testi-butch.jpg" alt="Butch H." width="58" height="58" loading="lazy" />
-                    <div>
-                      <strong>Butch H.</strong>
-                      {" "}
-                      <small>Trivecta Enterprises, LLC</small>
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-              {/* Garry P. */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="" data-sbf-delay="100">
-                <figure className="sbf-testi-card sbf-tm-card">
-                  <svg className="sbf-testi-quote" aria-hidden="true"><use href="#sbf-i-quote" /></svg>
-                  {" "}
-                  <span className="sbf-tm-tag">
-                    <svg className="sbf-icon"><use href="#sbf-i-truck" /></svg>
-                    {" "}
-                    Business Funding
-                  </span>
-                  <div className="sbf-stars" aria-label="5 out of 5">
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                    <svg><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <blockquote className="sbf-testi-text">
-                    I would like to thank you for all the hard work in getting the funding that we needed for
-                    our company. This was a very simple process and the professionalism was top notch. It was
-                    a pleasure working with you. Again, thanks.
-                  </blockquote>
-                  <figcaption className="sbf-testi-author">
-                    <span className="sbf-avatar sbf-tm-avatar" aria-hidden="true">GP</span>
-                    <div>
-                      <strong>Garry P.</strong>
-                      {" "}
-                      <small>Great West Distribution</small>
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-              {/* CTA card */}
-              <div className="col-md-6 col-lg-4" data-sbf-reveal="" data-sbf-delay="200">
-                <div className="sbf-tm-cta-card">
-                  <span className="sbf-tm-cta-icon"><svg className="sbf-icon"><use href="#sbf-i-star" /></svg></span>
-                  <h3 className="sbf-tm-cta-title">Your business could be our next success story.</h3>
-                  <p>Simple application, no tax returns required and a decision immediately.</p>
-                  <Link href="/apply-now" className="btn sbf-btn sbf-btn-gold">
-                    Apply Now
-                    {" "}
-                    <svg className="sbf-icon"><use href="#sbf-i-arrow" /></svg>
-                  </Link>
-                  {" "}
-                  <a href="tel:18002147498" className="sbf-tm-cta-phone">
-                    <svg className="sbf-icon"><use href="#sbf-i-phone" /></svg>
-                    {" "}
-                    1-800-214-7498
-                  </a>
-                </div>
-              </div>
+            <div className="sbf-review-grid-widget" data-sbf-reveal="" data-sbf-delay="100">
+              <StoryproofWidget widgetId="6afab4c431fe707090371321" />
             </div>
           </div>
         </section>
@@ -563,6 +358,8 @@ export default function TestimonialsPage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection />
       </main>
     </>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
+import { ReviewsSection } from '@/components/ReviewSections';
 import { QuoteRequestForm } from '@/components/forms/QuoteRequestForm';
 import { StoryproofWidget } from '@/components/StoryproofWidget';
 import { pageMetadata } from '@/lib/seo';
@@ -330,6 +331,8 @@ export default function QuoteRequestPage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection />
       </main>
     </>
   );

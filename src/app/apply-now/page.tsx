@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/JsonLd';
+import { ReviewsSection } from '@/components/ReviewSections';
 import { ApplyForm } from '@/components/apply/ApplyForm';
 import { StoryproofWidget } from '@/components/StoryproofWidget';
 import { pageMetadata } from '@/lib/seo';
@@ -179,6 +180,8 @@ export default function ApplyNowPage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection variant="apply" />
       </main>
     </>
   );

@@ -135,6 +135,19 @@ test.describe('the client changes of 2026-11-14 show on the pages', () => {
   });
 });
 
+test.describe('final HTML design of 2026-11-17: review widgets', () => {
+  test('every page ends with the Reviews widget; three pages have the Quote Spotlight', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'markup is the same at every width');
+    for (const p of PAGES) {
+      await page.goto(p.path);
+      await expect(page.locator('main > section#reviews [data-storyproof-widget="6afaae8531fe707090371314"]'), p.path).toHaveCount(1);
+      await expect(page.locator('main > section:last-of-type'), p.path).toHaveId('reviews');
+      const spotlight = page.locator('section.sbf-spotlight [data-storyproof-widget="6afac29131fe707090371333"]');
+      await expect(spotlight, p.path).toHaveCount(['/services', '/loan-types', '/the-process'].includes(p.path) ? 1 : 0);
+    }
+  });
+});
+
 test.describe('header, menu and page effects', () => {
   test('mobile menu opens, traps focus, closes with Escape and on link click', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'desktop', 'the menu is inline on desktop');

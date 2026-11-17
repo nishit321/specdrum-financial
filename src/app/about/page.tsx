@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
+import { ReviewsSection } from '@/components/ReviewSections';
+import { StoryproofWidget } from '@/components/StoryproofWidget';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
@@ -868,83 +870,19 @@ export default function AboutPage() {
           </div>
         </section>
         {/* ============ TESTIMONIALS ============ */}
-        <section className="sbf-section sbf-testi sbf-grain">
-          <div className="sbf-parallax-bg" data-sbf-parallax="0.2" style={{ backgroundImage: "url('/img/bg-office.jpg')" }} aria-hidden="true" />
-          <div className="sbf-parallax-overlay sbf-parallax-overlay--testi" aria-hidden="true" />
-          <div className="container position-relative">
-            <div className="row align-items-end g-4 sbf-section-head">
-              <div className="col-lg-7" data-sbf-reveal="">
-                <span className="sbf-eyebrow sbf-eyebrow-light">Borrower Stories</span>
-                <h2 className="sbf-title sbf-title-light">Trusted by thousands of American business owners</h2>
-              </div>
-              <div className="col-lg-5" data-sbf-reveal="" data-sbf-delay="100">
-                <p className="sbf-text sbf-text-light mb-0">
-                  From family-owned distributors to medical practices and contractors, see how Spectrum
-                  delivers on its 24-hour promise.
+        <section className="sbf-section sbf-testimonials" id="testimonials">
+          <div className="container">
+            <div className="row g-5 align-items-center">
+              <div className="col-lg-4" data-sbf-reveal="">
+                <span className="sbf-eyebrow">Client stories</span>
+                <h2 className="sbf-title">20 years of satisfied clients</h2>
+                <p className="sbf-text mb-0">
+                  Business owners across the nation trust Spectrum Financial to deliver exactly what we
+                  promise.
                 </p>
               </div>
-            </div>
-            <div className="row g-4">
-              {/* Rudy S. */}
-              <div className="col-md-6" data-sbf-reveal="" data-sbf-delay="50">
-                <div className="sbf-testi-card h-100">
-                  <div className="sbf-testi-rating">
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <p className="sbf-testi-text">
-                    &quot;We would like to take the time to thank Spectrum Financial for helping us secure a
-                    working capital loan for our business. Your team was very professional, patient and
-                    helpful, and that goes a long way for us. Spectrum Financial was excellent. Thanks
-                    again!&quot;
-                  </p>
-                  <div className="sbf-testi-author">
-                    <Image src="/img/testi-rudy.jpg" alt="Rudy S." className="sbf-avatar-photo" width="64" height="64" loading="lazy" />
-                    <div>
-                      <h3 className="sbf-testi-name">Rudy S.</h3>
-                      <p className="sbf-testi-company">New York Carpet Distributors, Inc.</p>
-                      <span className="sbf-verified-pill">
-                        <svg className="sbf-icon"><use href="#sbf-i-check" /></svg>
-                        {" "}
-                        Verified Borrower
-                      </span>
-                    </div>
-                    <span className="sbf-funded-chip">$250,000 Funded</span>
-                  </div>
-                </div>
-              </div>
-              {/* Greg P. */}
-              <div className="col-md-6" data-sbf-reveal="" data-sbf-delay="100">
-                <div className="sbf-testi-card h-100">
-                  <div className="sbf-testi-rating">
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                    <svg className="sbf-icon"><use href="#sbf-i-star" /></svg>
-                  </div>
-                  <p className="sbf-testi-text">
-                    &quot;I have never in my 35 years of being a business owner had such an easy and
-                    stress-free experience in obtaining a loan. My overall experience with Spectrum Financial
-                    has been outstanding. I look forward to doing business again soon. Thanks again!!&quot;
-                  </p>
-                  <div className="sbf-testi-author">
-                    <Image src="/img/testi-greg.jpg" alt="Greg P." className="sbf-avatar-photo" width="64" height="64" loading="lazy" />
-                    <div>
-                      <h3 className="sbf-testi-name">Greg P.</h3>
-                      <p className="sbf-testi-company">Next Generation Interiors of Baker&apos;s</p>
-                      <span className="sbf-verified-pill">
-                        <svg className="sbf-icon"><use href="#sbf-i-check" /></svg>
-                        {" "}
-                        Verified Borrower
-                      </span>
-                    </div>
-                    <span className="sbf-funded-chip">$185,000 Funded</span>
-                  </div>
-                </div>
+              <div className="col-lg-8" data-sbf-reveal="" data-sbf-delay="100">
+                <div className="sbf-testi-widget-card"><StoryproofWidget widgetId="6af49fb191f9b7a0112848fe" /></div>
               </div>
             </div>
           </div>
@@ -972,6 +910,8 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
+        {/* ============ REVIEWS WIDGET ============ */}
+        <ReviewsSection />
       </main>
     </>
   );
