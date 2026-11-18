@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7efdc"/>
+      <stop offset="1" stop-color="#eaf0f9"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2c27f"/>
+      <stop offset="1" stop-color="#c9a24a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" fill="url(#bg)"/>
+  <circle cx="70" cy="50" r="80" fill="#ffffff" fill-opacity=".55"/>
+
+  <!-- shelving -->
+  <g transform="translate(40 38)">
+    <rect x="0" y="0" width="8" height="192" rx="3" fill="#0a1f3c"/>
+    <rect x="206" y="0" width="8" height="192" rx="3" fill="#0a1f3c"/>
+    <rect x="0" y="62" width="214" height="7" rx="3" fill="#17407a"/>
+    <rect x="0" y="126" width="214" height="7" rx="3" fill="#17407a"/>
+    <rect x="0" y="186" width="214" height="7" rx="3" fill="#17407a"/>
+
+    <!-- top shelf boxes -->
+    <g>
+      <rect x="18" y="20" width="52" height="42" rx="3" fill="url(#box)"/>
+      <rect x="38" y="20" width="12" height="16" fill="#ffffff" fill-opacity=".5"/>
+      <rect x="78" y="30" width="40" height="32" rx="3" fill="#17407a"/>
+      <rect x="126" y="14" width="60" height="48" rx="3" fill="url(#box)"/>
+      <rect x="150" y="14" width="12" height="18" fill="#ffffff" fill-opacity=".5"/>
+    </g>
+    <!-- middle shelf -->
+    <g>
+      <rect x="18" y="88" width="62" height="38" rx="3" fill="#17407a"/>
+      <rect x="40" y="96" width="18" height="6" rx="2" fill="#ead39e"/>
+      <rect x="88" y="78" width="50" height="48" rx="3" fill="url(#box)"/>
+      <rect x="107" y="78" width="12" height="18" fill="#ffffff" fill-opacity=".5"/>
+      <rect x="146" y="92" width="44" height="34" rx="3" fill="url(#box)"/>
+    </g>
+    <!-- bottom shelf -->
+    <g>
+      <rect x="18" y="146" width="80" height="40" rx="3" fill="url(#box)"/>
+      <rect x="52" y="146" width="12" height="16" fill="#ffffff" fill-opacity=".5"/>
+      <rect x="106" y="152" width="40" height="34" rx="3" fill="#2a5ea8"/>
+      <rect x="152" y="140" width="38" height="46" rx="3" fill="url(#box)"/>
+    </g>
+  </g>
+
+  <!-- clipboard -->
+  <g transform="translate(276 64)">
+    <rect x="0" y="10" width="92" height="124" rx="10" fill="#ffffff" stroke="#0a1f3c" stroke-opacity=".12"/>
+    <rect x="28" y="0" width="36" height="20" rx="6" fill="#0a1f3c"/>
+    <g fill="none" stroke="#1f9d6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 46 l6 6 l10 -12"/>
+      <path d="M14 76 l6 6 l10 -12"/>
+      <path d="M14 106 l6 6 l10 -12"/>
+    </g>
+    <g fill="#0a1f3c" fill-opacity=".18">
+      <rect x="40" y="42" width="38" height="7" rx="3"/>
+      <rect x="40" y="72" width="30" height="7" rx="3"/>
+      <rect x="40" y="102" width="34" height="7" rx="3"/>
+    </g>
+  </g>
+  <rect x="24" y="230" width="352" height="6" rx="3" fill="#0a1f3c" fill-opacity=".15"/>
+</svg>

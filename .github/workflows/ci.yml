@@ -1,0 +1,40 @@
+name: CI
+
+# Every pull request into develop or main, and every push to them, must pass these checks
+# before it is merged. The browser tests (Playwright) run locally for now: their screenshot
+# baselines exist for Windows only (see README, "Tests").
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, type-check, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Type-check
+        run: npm run typecheck
+      - name: Unit, API and component tests
+        run: npm test
+      - name: Build
+        run: npm run build

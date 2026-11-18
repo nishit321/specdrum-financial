@@ -1,0 +1,323 @@
+/* ==========================================================================
+   Themed form controls (replace the browser's native select, datalist, range
+   and checkbox) + form error states. Uses the theme tokens from style.css.
+   ========================================================================== */
+
+/* ---------- dropdown (Select, Combobox) ---------- */
+.sbf-dd {
+  position: relative;
+}
+
+.sbf-dd-trigger {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sbf-dd-trigger:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.sbf-dd-value {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* the Apply Now selects showed their placeholder in grey */
+.sbf-field-select.sbf-dd-trigger.is-placeholder {
+  color: #94a3b8;
+}
+
+.sbf-dd-trigger.form-select.is-invalid,
+.sbf-dd-trigger.sbf-select.is-invalid {
+  border-color: #dc3545;
+}
+
+.sbf-dd-list {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 272px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--sbf-white);
+  border: 1px solid #d5dde8;
+  border-radius: 10px;
+  box-shadow: 0 18px 40px -12px rgba(10, 31, 60, .28);
+  scrollbar-width: thin;
+}
+
+.sbf-dd-list[hidden] {
+  display: none;
+}
+
+.sbf-dd-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--sbf-ink);
+  cursor: pointer;
+}
+
+.sbf-dd-option.is-active {
+  background: var(--sbf-bg-soft);
+}
+
+.sbf-dd-option[aria-selected="true"] {
+  font-weight: 700;
+  color: var(--sbf-navy-800);
+}
+
+.sbf-dd-check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--sbf-gold-500);
+}
+
+/* ---------- slider ---------- */
+.sbf-slider {
+  position: relative;
+  /* an inline-block with no in-flow content, exactly like the native range input it replaces:
+     its baseline is its bottom edge, so the line box (and the page height) stay the same */
+  display: inline-block;
+  vertical-align: baseline;
+  width: 100%;
+  height: 1.6rem;
+  margin: 0;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+
+.sbf-slider-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: 6px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--sbf-gold-500) var(--sbf-fill, 13%), var(--sbf-line) var(--sbf-fill, 13%));
+}
+
+.sbf-slider-thumb {
+  position: absolute;
+  top: 50%;
+  /* thumb centre sits on the fill edge, kept inside the track */
+  left: clamp(0px, calc(var(--sbf-fill, 0%) - 11px), calc(100% - 22px));
+  width: 22px;
+  height: 22px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--sbf-white);
+  border: 5px solid var(--sbf-navy-700);
+  box-shadow: 0 4px 10px rgba(10, 31, 60, .3);
+  transition: box-shadow .15s ease;
+}
+
+.sbf-slider:focus-visible .sbf-slider-thumb {
+  box-shadow: 0 0 0 4px var(--sbf-gold-300);
+}
+
+/* ---------- checkbox ---------- */
+.sbf-cbx {
+  --sbf-cbx-size: 18px;
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--sbf-cbx-size);
+  height: var(--sbf-cbx-size);
+}
+
+.sbf-cbx input.sbf-cbx-input[type="checkbox"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.sbf-cbx-box {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid #b6c2d3;
+  border-radius: 5px;
+  background: var(--sbf-white);
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.sbf-cbx-box svg {
+  width: 78%;
+  height: 78%;
+  color: var(--sbf-white);
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.sbf-cbx-input:checked + .sbf-cbx-box {
+  background: var(--sbf-navy-700);
+  border-color: var(--sbf-navy-700);
+}
+
+.sbf-cbx-input:checked + .sbf-cbx-box svg {
+  opacity: 1;
+  transform: none;
+}
+
+.sbf-cbx-input:hover + .sbf-cbx-box {
+  border-color: var(--sbf-navy-700);
+}
+
+.sbf-cbx-input:focus-visible + .sbf-cbx-box {
+  box-shadow: 0 0 0 3px rgba(201, 162, 74, .45);
+}
+
+.sbf-cbx-input.is-invalid + .sbf-cbx-box {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .15);
+}
+
+/* sizes the native boxes had in each spot */
+.sbf-app-checkbox-label .sbf-cbx {
+  --sbf-cbx-size: 17px;
+  margin-top: 2px;
+}
+
+.sbf-app-disclaimer-box .sbf-cbx {
+  --sbf-cbx-size: 20px;
+  margin-top: 2px;
+}
+
+.sbf-qr-check .sbf-cbx {
+  --sbf-cbx-size: 18px;
+  margin-top: 1px;
+}
+
+.sbf-qr-check.is-invalid > span:last-child {
+  color: #b42318;
+}
+
+/* ---------- errors ---------- */
+.sbf-field-error {
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #dc2626;
+}
+
+.sbf-sign-pad-wrap.is-invalid {
+  border-color: #ef4444;
+}
+
+.sbf-dropzone:focus-visible {
+  outline: none;
+  border-color: var(--sbf-navy-700);
+  box-shadow: 0 0 0 4px rgba(15, 44, 84, .12);
+}
+
+.sbf-form-alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 8px;
+  background: #fef2f2;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #7f1d1d;
+}
+
+.sbf-form-alert a {
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.sbf-upload-note {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+/* spinner inside submit buttons while sending */
+.sbf-btn-spinner {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: sbf-spin .7s linear infinite;
+}
+
+@keyframes sbf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* "Still loading?" hint for a page whose script never ran. It takes no space and stays
+   hidden for 8 s; React removes it as soon as the form is ready, so normal visits never see it. */
+.sbf-late-hint {
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 12px;
+  border: 0 solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13.5px;
+  line-height: 1.5;
+  animation: sbf-late-hint .3s ease-out 8s forwards;
+}
+
+.sbf-late-hint a {
+  color: inherit;
+  font-weight: 700;
+}
+
+@keyframes sbf-late-hint {
+  to {
+    visibility: visible;
+    max-height: 10em;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-width: 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sbf-btn-spinner {
+    animation-duration: 2s;
+  }
+
+  .sbf-late-hint {
+    animation-duration: .01s;
+  }
+}
