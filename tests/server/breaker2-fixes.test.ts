@@ -143,7 +143,8 @@ describe('#15: phone numbers pasted with typographic dashes, wide spaces or full
 });
 
 describe('#8: the sitemap carries the date the copy changed', () => {
-  it('lastmod is 2026-11-16 on every page', () => {
-    expect(sitemap().every((e) => String(e.lastModified) === '2026-11-16')).toBe(true);
+  it('lastmod is the date of the last content change on every page', () => {
+    // 2026-11-16: client copy changes; 2026-11-21: loan calculator page
+    expect(sitemap().every((e) => String(e.lastModified) === '2026-11-21')).toBe(true);
   });
 });

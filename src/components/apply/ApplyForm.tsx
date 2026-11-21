@@ -26,6 +26,7 @@ import {
   USE_OF_FUNDS_BUSINESS,
   USE_OF_FUNDS_INITIAL,
 } from '@/lib/forms/options';
+import { PROGRAMS, estimate, estimateLabel, parseCalculatorQuery, type CalculatorChoice } from '@/lib/loan-calculator';
 import { FileDrop } from './FileDrop';
 import { SignaturePad, type SignaturePadHandle } from './SignaturePad';
 
@@ -156,12 +157,35 @@ export function ApplyForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState({ name: 'Applicant', reference: '' });
   const [honeypot, setHoneypot] = useState('');
+  /** the program picked on the loan calculator, when the person came from there */
+  const [calculator, setCalculator] = useState<CalculatorChoice | null>(null);
   const signDate = useSyncExternalStore(noopSubscribe, todayUs, () => '');
   const hydrated = useHydrated();
   const signatureRef = useRef<SignaturePadHandle>(null);
   const idempotencyKey = useRef<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const firstRender = useRef(true);
+
+  // Coming from the loan calculator: fill in what it already knows; the person can change any of it.
+  // The address is read after hydration (the server renders the empty form), and applied once.
+  const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => '');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  if (search && search !== appliedSearch) {
+    setAppliedSearch(search);
+    const choice = parseCalculatorQuery(search);
+    if (choice) {
+      const program = PROGRAMS[choice.program];
+      const amount = estimate(choice.program, choice.monthlyRevenue);
+      setCalculator(choice);
+      setValues((v) => ({
+        ...v,
+        ...(amount !== null ? { amount: formatCurrencyInput(String(amount)) } : {}),
+        ...(program.useOfFunds ? { use_of_funds: program.useOfFunds } : {}),
+        ...(program.bizUse ? { biz_use: program.bizUse } : {}),
+        monthly_revenue: formatCurrencyInput(String(choice.monthlyRevenue)),
+      }));
+    }
+  }
 
   /* ---------- errors ---------- */
 
@@ -258,7 +282,7 @@ export function ApplyForm() {
 
     idempotencyKey.current ??= newIdempotencyKey();
     const body = new FormData();
-    body.append('payload', JSON.stringify({ idempotencyKey: idempotencyKey.current, honeypot, fields: values, signature }));
+    body.append('payload', JSON.stringify({ idempotencyKey: idempotencyKey.current, honeypot, fields: values, signature, ...(calculator ? { calculator } : {}) }));
     files.forEach((f) => body.append('files', f, f.name));
 
     setSending(true);
@@ -275,6 +299,7 @@ export function ApplyForm() {
       setTaxSameSsn(false);
       setAttempted(new Set());
       signatureRef.current?.clear();
+      setCalculator(null);
       idempotencyKey.current = null;
       goTo('success');
       return;
@@ -375,6 +400,16 @@ export function ApplyForm() {
       <form id="sbfApplyForm" method="post" noValidate onSubmit={onSubmit}>
         <NoScriptNotice />
         <LateScriptHint ready={hydrated} />
+        {calculator && (
+          <div className="sbf-calc-note" role="note">
+            <svg className="sbf-icon"><use href="#sbf-i-chart" /></svg>
+            <p>
+              From the loan calculator: <strong>{PROGRAMS[calculator.program].name}</strong> (
+              {calculator.program === 'sba' ? 'up to $500,000' : `estimated ${estimateLabel(calculator.program, calculator.monthlyRevenue)}`}).
+              We&apos;ve filled in what we already know; you can change anything.
+            </p>
+          </div>
+        )}
         {/* ================= STEP 1-A: OWNERS (INITIAL CONTACT) ================= */}
         <div className="sbf-step-view" id="sbfStep1A" style={shown('1A')}>
           <h2 className="sbf-app-step-title" tabIndex={-1}>

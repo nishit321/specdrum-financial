@@ -273,3 +273,55 @@ test.describe('A page whose script never runs (delta-2 #10)', () => {
     }
   });
 });
+
+test.describe('Loan calculator', () => {
+  test('revenue and start date → three offers → "Finish your Application" opens Apply Now filled in; the choice reaches the email and the PDF', async ({ page }, testInfo) => {
+    const errors = watchErrors(page);
+    await page.goto('/');
+    // phones and tablets: the menu sits behind the menu button
+    if (testInfo.project.name !== 'desktop') await page.getByRole('button', { name: 'Open menu' }).click();
+    await page.locator('.sbf-nav').getByRole('link', { name: 'Loan Calculator' }).click();
+    await expect(page).toHaveURL(/\/loan-calculator$/);
+
+    await page.locator('#calcRevenue').fill('50000');
+    await page.locator('#calcRevenue').blur();
+    await expect(page.locator('#calcRevenue')).toHaveValue('$ 50,000');
+    await choose(page, '#sbfCalcForm', 'Business start date', '6 months to 1 year');
+    await page.getByRole('button', { name: /Review Available Offers/ }).click();
+
+    const offers = page.getByRole('region', { name: /You pre-qualify/ });
+    await expect(offers).toBeVisible();
+    await expect(page.getByRole('heading', { name: /You pre-qualify/ })).toBeFocused();
+    await expect(offers.getByTestId('offer-working-capital')).toHaveText('$57,500');
+    await expect(offers.getByTestId('offer-line-of-credit')).toHaveText('$57,500');
+    await expect(offers.getByTestId('offer-equipment')).toHaveText('$230,000');
+    await expect(offers).toContainText('You may also qualify for an SBA 7(a) Loan');
+
+    await offers.locator('.sbf-offer-card', { hasText: 'Equipment Loan / Lease' }).getByRole('link', { name: /Finish your Application/ }).click();
+    await expect(page).toHaveURL(/\/apply-now\?program=equipment&revenue=50000&tib=6to12$/);
+    await expect(page.getByRole('note')).toContainText('From the loan calculator: Equipment Loan / Lease (estimated $230,000).');
+    await expect(page.locator('#appAmount')).toHaveValue('$ 230,000');
+    await expect(page.locator('#sbfStep1A').getByRole('combobox', { name: 'Use of Funds' })).toHaveText(/Equipment Purchase \/ Lease/);
+
+    await fillApplication(page);
+    await page.locator('#chkEsignConsent').check();
+    await drawSignature(page);
+    await page.locator('#btnStep3').click();
+    await expect(page.locator('#sbfStep4')).toBeVisible();
+
+    if (testInfo.project.name !== 'desktop') return; // one email per run
+    const before = mailIds();
+    await page.locator('#btnSubmitApp').click();
+    await expect(page.locator('#sbfStepSuccess')).toBeVisible({ timeout: 30_000 });
+    const [mail] = await waitForNewMail(before);
+    expect(mail.text).toContain('They came from the loan calculator and picked Equipment Loan / Lease.');
+    expect(mail.text).toMatch(/Program chosen:\s+Equipment Loan \/ Lease/);
+    expect(mail.text).toMatch(/Calculator estimate:\s+\$230,000/);
+    expect(mail.text).toMatch(/Business start date:\s+6 months to 1 year/);
+    const pdfBytes = fs.readFileSync(attachmentPath(mail.attachments[0].file));
+    const { text } = await extractText(await getDocumentProxy(new Uint8Array(pdfBytes)), { mergePages: false });
+    expect(text[1]).toContain('Loan Calculator');
+    expect(text[1]).toContain('$230,000');
+    expect(errors).toEqual([]);
+  });
+});

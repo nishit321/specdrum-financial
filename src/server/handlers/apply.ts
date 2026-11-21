@@ -7,6 +7,7 @@ import {
   type ApplyFields,
 } from '@/lib/forms/apply-schema';
 import { fieldErrors } from '@/lib/forms/quote-schema';
+import { calculatorSchema } from '@/lib/loan-calculator';
 import { errorMessage, fail, logEvent, ok } from '@/server/api';
 import { ownerName, type SubmissionMeta } from '@/server/application';
 import { appTimeZone, ConfigError, mailConfig } from '@/server/config';
@@ -148,6 +149,9 @@ async function submitApplication(form: FormData, request: Request, ip: string) {
   }
 
   const { idempotencyKey, honeypot, fields, signature } = payload;
+  // optional context from the loan calculator; anything invalid is left out rather than refused
+  const calc = calculatorSchema.safeParse(payload.calculator);
+  const calculator = calc.success ? calc.data : null;
   if (!isValidIdempotencyKey(idempotencyKey)) return fail(400, 'bad_request');
 
   if (typeof honeypot === 'string' && honeypot.trim() !== '') {
@@ -183,7 +187,7 @@ async function submitApplication(form: FormData, request: Request, ip: string) {
     // Not the signature bytes: the pad re-draws the same signature at a new size when the window
     // is resized, so an honest retry would differ. Any real change to the signature (or anything
     // else) makes the browser start a new key anyway.
-    const fingerprint = fingerprintOf(parsed.data, uploads.files.map((f) => [f.name, f.size]));
+    const fingerprint = fingerprintOf(parsed.data, uploads.files.map((f) => [f.name, f.size]), calculator);
     const reference = await applySubmissions
       .run(runKey, fingerprint, async () => {
         limited = applyGlobalLimiter.hit('all');
@@ -198,10 +202,10 @@ async function submitApplication(form: FormData, request: Request, ip: string) {
           };
           const data: ApplyFields = parsed.data;
           // a hard limit, so a render that never finishes can't hold a processing slot
-          const pdf = await withTimeout(renderApplicationPdf({ fields: data, meta, signaturePng }), PDF_RENDER_LIMIT_MS, 'PDF render').catch((err) => {
+          const pdf = await withTimeout(renderApplicationPdf({ fields: data, meta, signaturePng, calculator }), PDF_RENDER_LIMIT_MS, 'PDF render').catch((err) => {
             throw new PdfRenderError(err instanceof TimeoutError ? err.message : errorMessage(err));
           });
-          const { subject, content } = applicationEmail(data, meta, uploads.files.map(({ name, size }) => ({ name, size })));
+          const { subject, content } = applicationEmail(data, meta, uploads.files.map(({ name, size }) => ({ name, size })), calculator);
           await sendOwnerMail(
             {
               subject,
