@@ -321,3 +321,172 @@
     animation-duration: .01s;
   }
 }
+
+/* ---------- Loan calculator (/loan-calculator) ---------- */
+.sbf-calc-hint {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.sbf-offers .sbf-title:focus {
+  outline: none;
+}
+
+/* the section's own top padding is taller than the sticky header, so scrolling to it shows the eyebrow */
+.sbf-offers {
+  scroll-margin-top: 0;
+}
+
+.sbf-offer-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.sbf-offer-card .sbf-loan-feature-list {
+  flex: 1 0 auto;
+}
+
+.sbf-offer-amount {
+  margin: 4px 0 20px;
+  padding: 16px 18px;
+  border-radius: var(--sbf-radius);
+  border: 1px solid rgba(201, 162, 74, .35);
+  background: rgba(201, 162, 74, .12);
+}
+
+.sbf-offer-amount small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .7);
+}
+
+.sbf-offer-amount strong {
+  display: block;
+  font-family: var(--sbf-font-head);
+  font-size: 34px;
+  line-height: 1.1;
+  color: var(--sbf-gold-300);
+  overflow-wrap: anywhere;
+}
+
+.sbf-offer-cta {
+  margin-top: 18px;
+}
+
+.sbf-offers-note {
+  font-size: 13px;
+  color: rgba(255, 255, 255, .65);
+}
+
+.sbf-offer-sba {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  margin-top: 28px;
+  padding: 28px 32px;
+  border-radius: var(--sbf-radius-lg);
+  border: 1px solid rgba(201, 162, 74, .45);
+  background: linear-gradient(120deg, rgba(201, 162, 74, .14), rgba(255, 255, 255, .03) 60%);
+}
+
+.sbf-offer-sba-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.sbf-offer-sba-body .sbf-loan-icon {
+  flex-shrink: 0;
+}
+
+/* two classes: the theme's .sbf-body h3 (dark ink) would win over one */
+.sbf-offers .sbf-offer-sba-title {
+  margin: 0 0 10px;
+  font-family: var(--sbf-font-head);
+  font-size: 24px;
+  color: var(--sbf-white);
+}
+
+.sbf-offer-sba-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, .85);
+}
+
+.sbf-offer-sba-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sbf-offer-sba-list .sbf-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--sbf-gold-400);
+}
+
+.sbf-offer-sba .sbf-offer-cta {
+  margin-top: 0;
+}
+
+@media (max-width: 575.98px) {
+  .sbf-offer-sba {
+    padding: 22px 20px;
+  }
+
+  .sbf-offer-sba .sbf-offer-cta {
+    width: 100%;
+  }
+
+  .sbf-offer-amount strong {
+    font-size: 30px;
+  }
+}
+
+/* Apply Now: what the loan calculator filled in */
+.sbf-calc-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 74, .45);
+  border-left: 4px solid var(--sbf-gold-500);
+  background: var(--sbf-gold-100);
+  font-size: 14px;
+  color: var(--sbf-ink);
+}
+
+.sbf-calc-note .sbf-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--sbf-gold-500);
+}
+
+.sbf-calc-note p {
+  margin: 0;
+}
+
+/* Desktop menu: eight items since the loan calculator was added; keep every label on one line
+   (between 992 and 1280 px, "Loan Calculator", "Quote Request" and others wrapped onto two). */
+@media (min-width: 992px) {
+  .sbf-nav .nav-link,
+  .sbf-nav-cta {
+    white-space: nowrap;
+  }
+}

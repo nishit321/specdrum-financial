@@ -4,11 +4,13 @@ import type { Page } from '@playwright/test';
 
 export const MAIL_DIR = path.resolve(process.env.MAIL_SINK_DIR ?? 'tests/.output/mail');
 
-export const PAGES = [
+export const PAGES: { path: string; legacy?: string; title?: string }[] = [
   { path: '/', legacy: '/index.html', title: 'Business Loans & Funding in 24 Hours | Spectrum Financial' },
   { path: '/about', legacy: '/about.html', title: 'About Us | Spectrum Financial Business Lending' },
   { path: '/services', legacy: '/services.html' },
   { path: '/loan-types', legacy: '/loan-types.html' },
+  // added after the conversion (2026-11-21): no old .html address
+  { path: '/loan-calculator', title: 'Business Loan Calculator | Spectrum Financial' },
   { path: '/testimonials', legacy: '/testimonials.html' },
   { path: '/the-process', legacy: '/the-process.html' },
   { path: '/quote-request', legacy: '/quote-request.html' },

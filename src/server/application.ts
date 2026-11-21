@@ -1,6 +1,7 @@
 import type { ApplyFields } from '@/lib/forms/apply-schema';
-import { digitsOnly, formatEin, formatSsn, nanpDigits, parseCurrency, parsePercent, usd } from '@/lib/forms/format';
+import { digitsOnly, formatEin, formatSsn, nanpDigits, parseCurrency, parsePercent, usd, usdWhole } from '@/lib/forms/format';
 import { US_STATES } from '@/lib/forms/options';
+import { PROGRAMS, estimateLabel, timeInBusinessLabel, type CalculatorChoice } from '@/lib/loan-calculator';
 
 // Turns a validated application into the labelled values shown on the PDF and in the email.
 
@@ -59,6 +60,16 @@ export function formatInZone(date: Date, timeZone: string) {
   const p = (type: Intl.DateTimeFormatPartTypes) => parts.find((x) => x.type === type)?.value ?? '';
   const day = `${p('month')}/${p('day')}/${p('year')}`;
   return { day, dateTime: `${day} ${p('hour')}:${p('minute')} ${p('dayPeriod')} ${p('timeZoneName')}` };
+}
+
+/** What the person picked on the loan calculator before applying (email and PDF). */
+export function calculatorRows(c: CalculatorChoice): Row[] {
+  return [
+    { label: 'Program chosen', value: PROGRAMS[c.program].name },
+    { label: 'Calculator estimate', value: estimateLabel(c.program, c.monthlyRevenue) },
+    { label: 'Monthly revenue entered', value: usdWhole(c.monthlyRevenue) },
+    { label: 'Business start date', value: timeInBusinessLabel(c.timeInBusiness) },
+  ];
 }
 
 export function businessRows(f: ApplyFields): Row[][] {
