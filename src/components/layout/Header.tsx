@@ -10,6 +10,7 @@ const NAV = [
   { href: '/about', label: 'About' },
   { href: '/services', label: 'Services' },
   { href: '/loan-types', label: 'Loan Types' },
+  { href: '/loan-calculator', label: 'Loan Calculator' },
   { href: '/testimonials', label: 'Testimonials' },
   { href: '/the-process', label: 'The Process' },
   { href: '/quote-request', label: 'Quote Request' },

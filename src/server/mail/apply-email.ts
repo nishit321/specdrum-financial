@@ -1,7 +1,8 @@
 import { formatMb, type ApplyFields } from '@/lib/forms/apply-schema';
 import { digitsOnly, maskDob, maskSsn, parseCurrency, usdWhole } from '@/lib/forms/format';
 import { US_STATES } from '@/lib/forms/options';
-import { businessAddress, dashedPhone, displayIp, formatInZone, ownerName, type SubmissionMeta } from '../application';
+import { PROGRAMS, type CalculatorChoice } from '@/lib/loan-calculator';
+import { businessAddress, calculatorRows, dashedPhone, displayIp, formatInZone, ownerName, type SubmissionMeta } from '../application';
 import { SITE_DOMAIN } from '@/lib/seo';
 import type { EmailContent } from './template';
 import { oneLine } from './template';
@@ -13,7 +14,12 @@ const amountText = (v: string) => {
   return n === null ? v : usdWhole(n);
 };
 
-export function applicationEmail(f: ApplyFields, meta: SubmissionMeta, files: AttachedFile[]): { subject: string; content: EmailContent } {
+export function applicationEmail(
+  f: ApplyFields,
+  meta: SubmissionMeta,
+  files: AttachedFile[],
+  calculator: CalculatorChoice | null = null,
+): { subject: string; content: EmailContent } {
   const { dateTime } = formatInZone(meta.submittedAt, meta.timeZone);
   const name = ownerName(f);
   const amount = amountText(f.biz_amount);
@@ -29,6 +35,7 @@ export function applicationEmail(f: ApplyFields, meta: SubmissionMeta, files: At
     heading: `${f.biz_dba} applied for ${amount}`,
     intro: [
       `${name} (${f.title}, ${f.ownership.replace(/\s/g, '')} owner) filled out the Apply Now form and signed it electronically. The signed application is attached as a PDF. ${filesSentence}`,
+      ...(calculator ? [`They came from the loan calculator and picked ${PROGRAMS[calculator.program].name}.`] : []),
     ],
     sections: [
       {
@@ -40,6 +47,7 @@ export function applicationEmail(f: ApplyFields, meta: SubmissionMeta, files: At
           ...(amountText(f.amount) !== amount ? [{ label: 'Amount (first step)', value: amountText(f.amount) }] : []),
         ],
       },
+      ...(calculator ? [{ title: 'Loan calculator', rows: calculatorRows(calculator) }] : []),
       {
         title: 'Business',
         rows: [

@@ -28,6 +28,7 @@ test.describe('every page', () => {
 
   test('old .html links redirect permanently to the new pages', async ({ request }) => {
     for (const p of PAGES) {
+      if (!p.legacy) continue;
       const res = await request.get(p.legacy, { maxRedirects: 0 });
       expect([301, 308], p.legacy).toContain(res.status());
       expect(res.headers()['location']).toBe(p.path);
@@ -38,7 +39,8 @@ test.describe('every page', () => {
     const sitemap = await (await request.get('/sitemap.xml')).text();
     expect(sitemap).toContain('https://spectrumbusinessloans.com/apply-now');
     expect(sitemap).not.toContain('.html');
-    expect(sitemap.match(/<url>/g)).toHaveLength(11);
+    expect(sitemap.match(/<url>/g)).toHaveLength(PAGES.length);
+    expect(sitemap).toContain('https://spectrumbusinessloans.com/loan-calculator');
     const robots = await (await request.get('/robots.txt')).text();
     expect(robots).toContain('Sitemap: https://spectrumbusinessloans.com/sitemap.xml');
   });
@@ -145,6 +147,19 @@ test.describe('final HTML design of 2026-11-17: review widgets', () => {
       const spotlight = page.locator('section.sbf-spotlight [data-storyproof-widget="6afac29131fe707090371333"]');
       await expect(spotlight, p.path).toHaveCount(['/services', '/loan-types', '/the-process'].includes(p.path) ? 1 : 0);
     }
+  });
+});
+
+test.describe('Loan Calculator in the menu (2026-11-21)', () => {
+  test('every page links to it right after Loan Types, and it shows as current on its page', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'the desktop menu; the mobile menu uses the same list');
+    for (const p of PAGES) {
+      await page.goto(p.path);
+      const labels = await page.locator('.sbf-nav .nav-link').allInnerTexts();
+      expect(labels.indexOf('Loan Calculator'), p.path).toBe(labels.indexOf('Loan Types') + 1);
+    }
+    await page.goto('/loan-calculator');
+    await expect(page.locator('.sbf-nav .nav-link.active')).toHaveText('Loan Calculator');
   });
 });
 
