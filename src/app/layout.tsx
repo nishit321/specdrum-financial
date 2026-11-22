@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import { BackToTop } from '@/components/layout/BackToTop';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
@@ -45,6 +46,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <BackToTop />
         <SiteEffects />
+        {/* LeadConnector (GoHighLevel) chat widget, shown on every page. */}
+        <Script
+          src="https://widgets.leadconnectorhq.com/loader.js"
+          data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
+          data-widget-id="6b0309db10f9c20b4d599a8b"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
