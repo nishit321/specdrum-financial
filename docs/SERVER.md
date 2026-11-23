@@ -319,6 +319,10 @@ The **Deploy** workflow, `.github/workflows/deploy.yml`, has three steps:
 
 Deploys queue rather than overlap.
 
+**Status:** live since 2026-11-23.
+- The first automatic run, for release PR #7 (b0eaf90), pulled, built and restarted the site in about 3 minutes, and its live checks passed. GitHub's runners reach port 22.
+- A manual **Run workflow** on the same commit then skipped the build ("Nothing to build"), so it caused no outage.
+
 The workflow uses three repository secrets:
 - `DEPLOY_SSH_KEY`: the private key; its public half is in `/home/deploy/.ssh/authorized_keys`;
 - `DEPLOY_HOST`: `spectrumbusinessloans.com`;
@@ -945,7 +949,7 @@ A forward is changed in GoDaddy's forwarding settings, never in DNS.
   - never put the full SSN in the email body. It appears only in the attached PDF.
 - nginx hides its version (`server_tokens off`).
 
-Known gaps, which need the repo admin (see [Open items](#13-open-items)):
+Known gaps, which need the repo admin (steps in [13.1](#131-for-the-repo-admin-nishit)):
 - `main` has no branch protection. Anyone with write access can push straight to it, and that push deploys. Build steps run as `ubuntu`, which has sudo.
 - The deploy secrets are repository-wide. A write collaborator could read them through a workflow on another branch. The key can only redeploy, but repeated redeploys mean repeated minutes of broken site.
 
@@ -973,13 +977,63 @@ Known gaps, which need the repo admin (see [Open items](#13-open-items)):
 
 ## 13. Open items
 
-As of 2026-11-23:
+As of 2026-11-23.
 
-1. **For the repo admin (Nishit):**
-   - **Protect `main`:** Settings → Branches → add a ruleset for `main`. Require a pull request and the `Lint, type-check, tests, build` check, and block direct pushes.
-   - **Production environment:** create an environment `production` restricted to `main`, and move the three `DEPLOY_*` secrets into it. Then add `environment: production` to the job in `deploy.yml`.
-2. **First automatic deploy.** The Deploy workflow starts working with the release that brings it to `main`. Watch that first run; it also shows whether GitHub can reach port 22.
-3. **`www`.**
+### 13.1 For the repo admin (Nishit)
+
+Every merge or push to `main` now deploys production by itself. Two settings, which only the repo admin can change, close the gaps in [section 11](#11-security-in-place).
+
+**A. Protect `main` (about 5 minutes).** Without this, anyone with write access can push straight to `main`, and that code runs on the server and goes live.
+
+1. Repo → **Settings** → **Rules** → **Rulesets** → **New ruleset** → **New branch ruleset**.
+2. Ruleset name `protect main`, Enforcement status **Active**.
+3. Target branches → **Add target** → **Include default branch**.
+4. Turn on these rules:
+   - **Restrict deletions**;
+   - **Block force pushes**;
+   - **Require a pull request before merging**. Required approvals: 0 if one developer works alone, 1 if every change needs a second person;
+   - **Require status checks to pass** → **Add checks** → `Lint, type-check, tests, build`.
+5. Bypass list: leave it empty, or add *Repository admin* for emergencies only.
+6. **Create**.
+
+A direct push to `main` is refused from then on. Every change, hotfixes included, goes through a pull request with green CI.
+
+**B. Production environment for the deploy secrets (about 15 minutes).** Today the three `DEPLOY_*` secrets are repository secrets, so a workflow on any branch could read them. An environment limited to `main` closes that.
+
+GitHub never shows a secret's value again, so the deploy key must be replaced. Follow this order and the deploy keeps working throughout:
+
+1. Settings → **Environments** → **New environment** → `production`. Under **Deployment branches and tags**, choose **Selected branches and tags** and add `main`.
+2. Make a new key pair on your own computer:
+
+   ```bash
+   ssh-keygen -t ed25519 -f gh-deploy -N "" -C github-actions-deploy
+   ```
+
+3. In the `production` environment, add three **environment secrets**:
+
+   | Name | Value |
+   |---|---|
+   | `DEPLOY_SSH_KEY` | the whole content of `gh-deploy`, from `-----BEGIN` to `END-----` |
+   | `DEPLOY_HOST` | `spectrumbusinessloans.com` |
+   | `DEPLOY_KNOWN_HOSTS` | `spectrumbusinessloans.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAUVMikKVfx2A/kSAJSRuWBnXKOa6GV4aiV6Fc9PZew3` |
+
+4. Send `gh-deploy.pub` (the public half, safe to share) to whoever has SSH access. On the server they **add** it as a second line; the old key keeps working for now:
+
+   ```bash
+   echo 'restrict,command="sudo -n /usr/local/bin/spectrum-deploy main" <contents of gh-deploy.pub>' | sudo tee -a /home/deploy/.ssh/authorized_keys > /dev/null
+   sudo ssh-keygen -lf /home/deploy/.ssh/authorized_keys
+   ```
+
+5. Pull request: in `.github/workflows/deploy.yml`, add `environment: production` to the `deploy` job, on its own line under `runs-on: ubuntu-latest`. Merge it into `develop`, then release it into `main`. The deploy for that release already uses the environment's secrets. Check that it succeeds.
+6. Clean up:
+   - remove the **old** key line from `/home/deploy/.ssh/authorized_keys` (the one whose fingerprint is `SHA256:aVVtw8m5X92g0EsAO6iOesDFUR6baZa1KPCXqZcFs1o`);
+   - delete the three **repository** secrets under Settings → Secrets and variables → Actions;
+   - delete `gh-deploy` and `gh-deploy.pub` from your computer.
+
+### 13.2 Everything else
+
+1. **Form email since the move to PM2.** The SMTP login works (`spectrum-smtp-check`), but no real form has been sent since 2026-11-23. Send one test quote with made-up data and confirm it arrives at `MAIL_TO`.
+2. **`www`.**
    - Delete the old `A www 160.153.0.165` record in GoDaddy and wait 10–15 minutes.
    - Then add `www` to the certificate. When certbot asks, answer `U` (Update):
 
@@ -990,20 +1044,20 @@ As of 2026-11-23:
      ```
 
    - nginx needs no change: the HTTPS block already redirects every other host name to `https://spectrumbusinessloans.com`.
-4. **Mail size.** briskfern caps a message at 10 MB, but Apply Now accepts 15 MB of statements, which become about 21 MB as email. Large applications therefore fail. Two options:
+3. **Mail size.** briskfern caps a message at 10 MB, but Apply Now accepts 15 MB of statements, which become about 21 MB as email. Large applications therefore fail. Two options:
    - set the upload limit to 6 MB (section 6);
    - move to an SMTP provider with a larger cap, e.g. Amazon SES at 40 MB. That needs the AWS admin.
-5. **Recipient.** At go-live, `MAIL_TO` must be `david@spectrumbusinessfinance.com`. Check the current value in the settings file.
-6. **Elastic IP.** The AWS admin must confirm or attach one. If a new IP is attached, update both A records in GoDaddy.
-7. **Pushing from the server.** Two options:
+4. **Recipient.** At go-live, `MAIL_TO` must be `david@spectrumbusinessfinance.com`. Check the current value in the settings file.
+5. **Elastic IP.** The AWS admin must confirm or attach one. If a new IP is attached, update both A records in GoDaddy.
+6. **Pushing from the server.** Two options:
    - a write **deploy key** for the repo (added by the admin);
    - a fine-grained personal token for this repo only, kept in `ubuntu`'s git credentials.
-8. **SMTP password.** Rotate it, then update the settings file and restart the app.
-9. **Chat widget on Apply Now.** Commit 659be8a went straight to `main` and added the GoHighLevel chat script to every page, including the page where people enter their SSN. A third-party script can read that page. Decide whether to keep it there.
-10. **Cleanup.** Delete the leftovers listed in section 4 once the new layout has run for a few days.
-11. **No monitoring.** No uptime alert exists. Consider a free uptime monitor.
-12. **Subdomain.** `loan-calculator.spectrumbusinessloans.com` still forwards to the old site's calculator, while the site now has its own `/loan-calculator`. Whether to change it is the client's call.
-13. **`npm warn EBADENGINE unpdf`.** This warning is harmless. `unpdf` is a test-only tool that prefers Node 24; the site runs on Node 22.
+7. **SMTP password.** Rotate it, then update the settings file and restart the app.
+8. **Chat widget on Apply Now.** Commit 659be8a went straight to `main` and added the GoHighLevel chat script to every page, including the page where people enter their SSN. A third-party script can read that page. Decide whether to keep it there.
+9. **Cleanup.** Delete the leftovers listed in section 4 once the new layout has run for a few days.
+10. **No monitoring.** No uptime alert exists. Consider a free uptime monitor.
+11. **Subdomain.** `loan-calculator.spectrumbusinessloans.com` still forwards to the old site's calculator, while the site now has its own `/loan-calculator`. Whether to change it is the client's call.
+12. **`npm warn EBADENGINE unpdf`.** This warning is harmless. `unpdf` is a test-only tool that prefers Node 24; the site runs on Node 22.
 
 ## 14. History
 
@@ -1014,3 +1068,4 @@ As of 2026-11-23:
 | 2026-11-21 | Loan calculator and themed application PDF released (PR #4, PR #5 → `main` 36b96fe) |
 | 2026-11-22 | 36b96fe deployed. Every image returned 404, because the old deploy script nested `public/`. Fixed by hand. 659be8a (chat widget) was pushed straight to `main` |
 | 2026-11-23 | Moved from systemd to **PM2**. Layout changed to **one git folder**, `/var/www/spectrum`, at the owner's choice. New deploy script, reviewed and break-tested. **GitHub Actions deploy** added (`deploy.yml`, deploy user, repository secrets) |
+| 2026-11-23 | PR #6 into `develop`, then release PR #7 into `main` (b0eaf90). **First automatic deploy succeeded** (full build, about 3 minutes). A manual Run workflow was tested; the build was skipped |
