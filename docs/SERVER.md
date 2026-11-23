@@ -2,7 +2,8 @@
 
 This document covers how https://spectrumbusinessloans.com runs:
 - the server and the services it uses;
-- how deployment works, automatic from GitHub and by hand;
+- how deployment works, automatic from GitHub (CI/CD) and by hand;
+- how to use PM2 and git (pull and push) on the server;
 - how the server was set up, with every command;
 - what to do when something breaks.
 
@@ -10,6 +11,25 @@ It describes the state on 2026-11-23. Update it whenever the server changes.
 
 > The repository is public. Never put a password, a personal email address or a customer document in this file.
 > Secrets live only on the server, in `/etc/spectrum/spectrum.env`, and in GitHub's encrypted secrets. Keep a copy of the SMTP login in the team's password manager.
+
+## Quick reference
+
+On the server, log in as `ubuntu`. There, `pm2` is an alias for `sudo spm2` (section 7).
+
+| I want to… | Do this |
+|---|---|
+| Release a change | Pull request into `develop`, then a release pull request from `develop` into `main`. CI runs, and the **Deploy** workflow puts it live by itself in about 3 minutes |
+| Deploy from GitHub by hand | Actions → **Deploy** → **Run workflow** |
+| Deploy from the server | `sudo /usr/local/bin/spectrum-deploy main` |
+| Make what I pulled or checked out myself live | `sudo /usr/local/bin/spectrum-deploy --no-pull` |
+| Work with git | `cd /var/www/spectrum`, then `git status`, `git pull origin main`, … (no `sudo`) |
+| Push from the server | One-time set-up first ([5.3](#53-working-with-git-on-the-server)) |
+| App status | `pm2 l` |
+| App logs | `pm2 logs spectrum --lines 50 --nostream` |
+| Restart the app | `pm2 restart spectrum` |
+| Deploy logs | `ls -t /var/log/spectrum-deploy/` (newest first) |
+| Which commit is live | `cat /var/www/spectrum/.next/standalone/.deployed-sha` |
+| Change SMTP or `MAIL_TO` | `sudo nano /etc/spectrum/spectrum.env`, then `pm2 restart spectrum` |
 
 ## 1. At a glance
 
@@ -98,7 +118,8 @@ Why it is built this way:
 | `/etc/spectrum/ecosystem.config.js` | PM2's description of the app |
 | `/var/lib/spectrum/` | Home of user `spectrum`. PM2's own files are in `.pm2/`, including logs and the saved process list |
 | `/etc/systemd/system/pm2-spectrum.service` | Starts PM2, and through it the app, at boot |
-| `/usr/local/bin/spm2` | Runs `pm2` as `spectrum`. Always use `sudo spm2 …` |
+| `/usr/local/bin/spm2` | Runs `pm2` as `spectrum`. Use `sudo spm2 …`, or just `pm2 …` as `ubuntu` (alias) |
+| `/home/ubuntu/.bashrc` | Holds `alias pm2='sudo spm2'`, so `pm2 …` typed as `ubuntu` controls the real app |
 | `/usr/local/bin/spectrum-deploy` | The deploy script |
 | `/var/log/spectrum-deploy/` | One log per deploy, kept 30 days |
 | `/usr/local/bin/spectrum-smtp-check` | Tests the SMTP login without sending mail |
@@ -165,7 +186,9 @@ One `curl: (7) ... Could not connect` line during step 9 is normal: the app take
 
 ### 5.3 Working with git on the server
 
-The code in `/var/www/spectrum` belongs to `ubuntu`, so you work there as yourself, without sudo:
+The code in `/var/www/spectrum` belongs to `ubuntu`, so you work there as yourself, **without `sudo`**.
+
+**Look and pull:**
 
 ```bash
 cd /var/www/spectrum
@@ -175,7 +198,9 @@ git log --oneline -5
 git pull origin main
 ```
 
-To make what is checked out live, for example after your own `git pull` or a checkout of another commit:
+Pulling needs no login, because the repository is public.
+
+**Make what is checked out live,** for example after your own `git pull` or a checkout of another commit:
 
 ```bash
 sudo /usr/local/bin/spectrum-deploy --no-pull
@@ -183,17 +208,76 @@ sudo /usr/local/bin/spectrum-deploy --no-pull
 
 `--no-pull` builds and restarts whatever is in the folder, uncommitted edits included. It does not pull and does not skip the build.
 
-Rules:
-- **The automatic deploy only works when the folder is clean and on `main`.** Edits made with nano and left uncommitted, or a checked-out branch, make every deploy refuse until you commit and push them, discard them (`git checkout -- .`), or switch back (`git checkout main`).
-- **Run git without `sudo`.** A `sudo git …` leaves root-owned files behind. The deploy script resets ownership to `ubuntu` each time, but your own next `git` command may fail before that.
-- **Pushing from the server needs a GitHub login,** which is not set up yet (see [Open items](#13-open-items)). Commits also need an identity once:
+**Change code on the server and push it:**
+
+```bash
+cd /var/www/spectrum
+git checkout -b fix/short-name        # work on a branch, not on main
+nano src/...                          # edit
+git add -A
+git commit -m "fix: what changed"
+git push -u origin fix/short-name     # then open a pull request into develop on GitHub
+git checkout main                     # go back, so automatic deploys keep working
+```
+
+To try the change live before the pull request, run `sudo /usr/local/bin/spectrum-deploy --no-pull` while the branch is checked out. Afterwards return with `git checkout main && sudo /usr/local/bin/spectrum-deploy --no-pull`. Meanwhile production runs code that nobody has reviewed.
+
+**One-time set-up for pushing.** Do it once, as `ubuntu`.
+
+First, give your commits a name:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Then pick one of these two logins.
+
+*Option A, recommended: a deploy key with write access, limited to this repository.*
+
+1. Make the key on the server:
+
+   ```bash
+   ssh-keygen -t ed25519 -f ~/.ssh/github_spectrum -N "" -C "spectrum-server-push"
+   cat ~/.ssh/github_spectrum.pub
+   ```
+
+2. Send the printed line to the repo admin. They add it under Settings → **Deploy keys** → **Add deploy key**, with **Allow write access** ticked.
+3. On the server, use that key for github.com. Pushes go over SSH, while pulls keep using the public https address, so deploys never depend on this key:
+
+   ```bash
+   cat >> ~/.ssh/config <<'EOF'
+   Host github.com
+     IdentityFile ~/.ssh/github_spectrum
+     IdentitiesOnly yes
+   EOF
+   chmod 600 ~/.ssh/config
+   ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+   ssh-keygen -lf ~/.ssh/known_hosts | grep github.com
+   cd /var/www/spectrum
+   git remote set-url --push origin git@github.com:nishit321/specdrum-financial.git
+   ssh -T git@github.com
+   ```
+
+4. Check what you see:
+   - the fingerprint line must show GitHub's published key, `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`;
+   - `ssh -T` answers `Hi nishit321/specdrum-financial! You've successfully authenticated`.
+
+*Option B: a personal access token, no admin needed.*
+- Fine-grained tokens cannot reach a repository owned by another personal account, so this needs a **classic** token with the `public_repo` scope. That scope covers every public repository you can write to.
+- Create it under your GitHub account's Settings → Developer settings → Personal access tokens → Tokens (classic), and give it an expiry date.
+- Then:
 
   ```bash
-  git config --global user.name "Your Name"
-  git config --global user.email "you@example.com"
+  git config --global credential.helper store
   ```
 
-- **A push to `main` deploys itself.** Prefer a branch and a pull request, so CI and a review come first.
+- At the first `git push`, enter your GitHub username, and paste the token as the password. It is saved in `~/.git-credentials` as plain text, mode 600. Delete that file to log out.
+
+Rules:
+- **The automatic deploy only works when the folder is clean and on `main`.** Edits made with nano and left uncommitted, a checked-out branch, or commits not yet pushed make every deploy refuse. Commit and push them, discard them (`git checkout -- .`), or switch back (`git checkout main`).
+- **Run git without `sudo`.** A `sudo git …` leaves root-owned files behind. The deploy script resets ownership to `ubuntu` each time, but your own next `git` command may fail before that.
+- **A push to `main` deploys itself** as soon as CI passes. Prefer a branch and a pull request, so CI and a review come first. Once `main` is protected ([13.1](#131-for-the-repo-admin-nishit)), a direct push to `main` is refused.
 
 ### 5.4 Checks after a deploy
 
@@ -273,12 +357,12 @@ This has not been done yet (see [Open items](#13-open-items)). If you raise the 
 ## 7. Everyday commands
 
 ```bash
-# app (PM2): always through spm2, never a bare "pm2"
-sudo spm2 ls                                  # status
-sudo spm2 restart spectrum
-sudo spm2 logs spectrum --lines 50 --nostream # last 50 log lines
-sudo spm2 logs spectrum                       # follow live (Ctrl+C stops)
-sudo spm2 describe spectrum                   # paths, restarts, uptime
+# app (PM2). As ubuntu, "pm2" is an alias for "sudo spm2": PM2 runs as user spectrum
+pm2 l                                         # status
+pm2 restart spectrum
+pm2 logs spectrum --lines 50 --nostream       # last 50 log lines
+pm2 logs spectrum                             # follow live (Ctrl+C stops)
+pm2 describe spectrum                         # paths, restarts, uptime
 
 # deploys
 sudo /usr/local/bin/spectrum-deploy main      # deploy (skips the build when nothing changed)
@@ -307,6 +391,13 @@ sudo apt update && sudo apt -y upgrade        # updates
 ```
 
 nginx and the app start by themselves after `sudo reboot`. PM2's boot service restores the saved process list.
+
+**About `pm2`:**
+- The app's PM2 runs as user `spectrum`, with its files in `/var/lib/spectrum/.pm2`.
+- The alias `pm2='sudo spm2'` in `/home/ubuntu/.bashrc` sends every `pm2 …` you type there. Other users, scripts and cron jobs use `sudo spm2 …`.
+- `pm2 stop`, `pm2 delete` and `pm2 kill` act on the **live site**.
+- **Never type `sudo pm2 …`.** `sudo` skips the alias and starts a separate, empty PM2 as root. The same goes for `/usr/bin/pm2 …`, which starts one as `ubuntu`.
+- If `pm2 l` ever shows an empty list, run `ps -eo user,cmd | grep "God Daemon"`. Only the `spectrum` line should be there. Stop a stray one with `/usr/bin/pm2 kill` (the `ubuntu` one) or `sudo /usr/bin/pm2 kill` (the root one). Neither touches the app. If no stray PM2 is running, the command briefly starts one and stops it again, which is harmless.
 
 App logs record events, references, client IPs and mail-server errors. They never record form contents such as names or SSNs.
 
@@ -497,6 +588,12 @@ sudo spm2 delete spectrum && sudo spm2 start /etc/spectrum/ecosystem.config.js &
 ```
 
 `restart` alone keeps the old settings.
+
+Make `pm2` typed as `ubuntu` go to the app's PM2:
+
+```bash
+echo "alias pm2='sudo spm2'" >> ~/.bashrc && source ~/.bashrc
+```
 
 ### 9.9 Deploy script
 
@@ -973,6 +1070,9 @@ Known gaps, which need the repo admin (steps in [13.1](#131-for-the-repo-admin-n
 | PuTTY can't connect | Your own IP probably changed. The AWS admin checks the port-22 rule in the security group |
 | GoDaddy: "Record could not be added" | Turn off Website Security → Firewall, then save again |
 | `www` sometimes shows "Coming Soon" | The old `A www 160.153.0.165` record is still there. Delete it |
+| `pm2 l` shows an empty list | You are looking at a stray PM2, not the app's: `sudo pm2` or `/usr/bin/pm2` was typed, or the alias is missing. See "About `pm2`" in section 7. The real one: `sudo spm2 ls` |
+| `git push`: "Permission denied" or a password prompt | Push from the server is not set up yet. See the one-time set-up in [5.3](#53-working-with-git-on-the-server) |
+| `git pull` or `git` commands: "Permission denied" on files | Someone ran `sudo git …`. Fix it with `sudo chown -R ubuntu:ubuntu /var/www/spectrum`; the next deploy also fixes it |
 | Disk full | Check with `df -h /`. Clean up with `sudo journalctl --vacuum-time=30d`, and remove the leftover folders in section 4 |
 
 ## 13. Open items
@@ -1050,8 +1150,8 @@ GitHub never shows a secret's value again, so the deploy key must be replaced. F
 4. **Recipient.** At go-live, `MAIL_TO` must be `david@spectrumbusinessfinance.com`. Check the current value in the settings file.
 5. **Elastic IP.** The AWS admin must confirm or attach one. If a new IP is attached, update both A records in GoDaddy.
 6. **Pushing from the server.** Two options:
-   - a write **deploy key** for the repo (added by the admin);
-   - a fine-grained personal token for this repo only, kept in `ubuntu`'s git credentials.
+   - a write **deploy key** for the repo (option A in [5.3](#53-working-with-git-on-the-server); the admin adds it);
+   - a classic personal access token (option B).
 7. **SMTP password.** Rotate it, then update the settings file and restart the app.
 8. **Chat widget on Apply Now.** Commit 659be8a went straight to `main` and added the GoHighLevel chat script to every page, including the page where people enter their SSN. A third-party script can read that page. Decide whether to keep it there.
 9. **Cleanup.** Delete the leftovers listed in section 4 once the new layout has run for a few days.
@@ -1069,3 +1169,4 @@ GitHub never shows a secret's value again, so the deploy key must be replaced. F
 | 2026-11-22 | 36b96fe deployed. Every image returned 404, because the old deploy script nested `public/`. Fixed by hand. 659be8a (chat widget) was pushed straight to `main` |
 | 2026-11-23 | Moved from systemd to **PM2**. Layout changed to **one git folder**, `/var/www/spectrum`, at the owner's choice. New deploy script, reviewed and break-tested. **GitHub Actions deploy** added (`deploy.yml`, deploy user, repository secrets) |
 | 2026-11-23 | PR #6 into `develop`, then release PR #7 into `main` (b0eaf90). **First automatic deploy succeeded** (full build, about 3 minutes). A manual Run workflow was tested; the build was skipped |
+| 2026-11-23 | `pm2` alias for `ubuntu` (`alias pm2='sudo spm2'`). Guide: quick reference, git pull/push on the server with the push set-up, and `pm2` pitfalls |
