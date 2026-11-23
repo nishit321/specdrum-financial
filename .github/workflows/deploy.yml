@@ -1,0 +1,87 @@
+name: Deploy
+
+# Deploys main to the production server after CI has passed on it, or when started by hand
+# (Actions → Deploy → Run workflow). The server does the work: the SSH key in DEPLOY_SSH_KEY
+# can only run "sudo /usr/local/bin/spectrum-deploy main" there (docs/SERVER.md).
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+# One deploy at a time: a second one waits instead of building on top of the first.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy main to spectrumbusinessloans.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    steps:
+      - name: Check that CI passed on the commit main points at
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          main_sha=$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)
+          if [ -n "${RUN_SHA:-}" ] && [ "$RUN_SHA" != "$main_sha" ]; then
+            echo "main has moved on to $main_sha; that commit deploys after its own CI run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ci=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow CI --branch main --commit "$main_sha" \
+            --json conclusion,event --jq '[.[] | select(.event == "push")][0].conclusion')
+          if [ "$ci" != "success" ]; then
+            echo "::error::CI on $main_sha is '$ci', not success. Not deploying."
+            exit 1
+          fi
+          echo "Deploying $main_sha"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy over SSH
+        if: steps.target.outputs.skip != 'true'
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The key's forced command on the server runs the deploy; the command given here is ignored.
+          ssh -T -i ~/.ssh/deploy_key -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=20 -o ServerAliveInterval=30 "deploy@${DEPLOY_HOST}" deploy
+
+      - name: Check the live site
+        if: steps.target.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          base=https://spectrumbusinessloans.com
+          for p in / /apply-now /loan-calculator /quote-request /img/logo.png; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$base$p")
+            echo "$p $code"
+            [ "$code" = 200 ] || { echo "::error::$p answered $code"; exit 1; }
+          done
+          # an empty quote must reach the app (400 validation); 403 means the same-origin check refused it
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 -X POST "$base/api/quote" \
+            -H "Origin: $base" -H 'Content-Type: application/json' \
+            -d '{"form":"home-quote","idempotencyKey":"deploy-check-0000000000","data":{}}')
+          echo "form API $code"
+          [ "$code" = 400 ] || { echo "::error::the form API answered $code (expected 400)"; exit 1; }
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
